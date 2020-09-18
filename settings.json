@@ -1,0 +1,14 @@
+{
+    "workers": {
+        "value": 1,
+        "description": "Max. no of processes/threads to run in concurrent. If no idea, leave as it is. Or take advice from developer. To increase speed."
+    },
+    "driver_path": {
+        "value": "/home/narendran/Documents/chromedriver",
+        "description": "Absolute path to the chromedriver executable."
+    },
+    "page_load_timeout": {
+        "value": 10,
+        "description": "Timeout limit for loading the full/part of the web page."
+    }
+}

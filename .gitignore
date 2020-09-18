@@ -1,0 +1,4 @@
+.ipynb*
+.vscode
+output.xlsx
+*.ipynb
