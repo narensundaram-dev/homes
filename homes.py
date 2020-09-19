@@ -35,6 +35,7 @@ def get_logger():
     return log
 
 log = get_logger()
+NA = "NA"
 
 
 class HomesNZ:
@@ -56,7 +57,7 @@ class HomesNZ:
             search_bar = self.chrome.find_element_by_id("autocomplete-search")
             search_bar.clear()
             search_bar.send_keys(input_)
-        except StaleElementReferenceException as e:
+        except StaleElementReferenceException as _:
             time.sleep(1)
             self.type_in_search_bar(input_)
 
@@ -91,6 +92,9 @@ class HomesNZ:
             options.append(option)
 
         chosen = found if found else default
+        if not chosen:
+            return NA, NA
+
         chosen_suburb, chosen_region = get_suburb(chosen), get_region(chosen)
         chosen.click()
         
@@ -114,18 +118,28 @@ class HomesNZ:
                     WebDriverWait(self.chrome, wait).until(EC.presence_of_element_located((By.CLASS_NAME, "addressResults")))
 
                     chosen_suburb, chosen_region = self.click_option_in_dropdown(ip_suburb, ip_region)
-                    WebDriverWait(self.chrome, wait).until(EC.presence_of_element_located((By.CLASS_NAME, "statValue")))
-
-                    data = {
-                        "suburb": ip_suburb,
-                        "region": ip_region,
-                        "median_estimate": self.chrome.find_elements_by_class_name("statValue")[0].text.strip(),
-                        "period1": self.chrome.find_elements_by_class_name("statNote")[0].text.strip(),
-                        "capital_growth": self.chrome.find_elements_by_class_name("statValue")[-1].text.strip(),
-                        "period2": self.chrome.find_elements_by_class_name("statNote")[-1].text.strip(),
-                        "chosen_area": f"{chosen_suburb} - {chosen_region}"
-                    }
-                    self.output.append(data)
+                    if chosen_suburb == NA and chosen_region == NA:
+                        log.info(f"Skipped {ip_suburb} - {ip_region} ...")
+                        self.output.append({
+                            "suburb": ip_suburb,
+                            "region": ip_region,
+                            "median_estimate": NA,
+                            "period1": NA,
+                            "capital_growth": NA,
+                            "period2": NA,
+                            "chosen_area": f"{chosen_suburb} - {chosen_region}"
+                        })
+                    else:
+                        WebDriverWait(self.chrome, wait).until(EC.presence_of_element_located((By.CLASS_NAME, "statValue")))
+                        self.output.append({
+                            "suburb": ip_suburb,
+                            "region": ip_region,
+                            "median_estimate": self.chrome.find_elements_by_class_name("statValue")[0].text.strip(),
+                            "period1": self.chrome.find_elements_by_class_name("statNote")[0].text.strip(),
+                            "capital_growth": self.chrome.find_elements_by_class_name("statValue")[-1].text.strip(),
+                            "period2": self.chrome.find_elements_by_class_name("statNote")[-1].text.strip(),
+                            "chosen_area": f"{chosen_suburb} - {chosen_region}"
+                        })
 
                 except TimeoutException as _:
                     log.error(f"NOT FOUND. Couldn't fetch data for {ip_suburb} - {ip_region}")
