@@ -91,7 +91,16 @@ class HomesNZ:
             
             options.append(option)
 
-        chosen = found if found else default
+        def get_chosen():
+            if found:
+                return found
+            elif default:
+                return default
+            else:
+                suburb_only = list(filter(lambda option: get_suburb(option).lower() == ip_suburb.lower() and not get_region(option), options))
+                return suburb_only[0] if suburb_only else None
+        
+        chosen = get_chosen()
         if not chosen:
             return NA, NA
 
